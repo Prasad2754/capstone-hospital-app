@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #a3f7f3;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h2, h3 {
+            color: #333;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: crimson;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        select, input {
+            padding: 6px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        #appointment-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f4f4f4;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Welcome, {{ patient_name }}</h2>
+
+    <h3>Here are your upcoming appointments:</h3>
+    {% if appointments %}
+        <ul>
+            {% for appt in appointments %}
+                <li>{{ appt.doctor_name }} - {{ appt.date }} ({{ appt.time_slot }})</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No appointments found.</p>
+    {% endif %}
+
+    <p><strong>Hospital Address:</strong> Whitby Regional Hospital, 123 Health Ave, Whitby, ON</p>
+
+    <div id="appointment-section">
+        <h3>Book an Appointment</h3>
+        <label for="region">Select Region:</label>
+        <select id="region">
+            <option value="" disabled selected>Select a region</option>
+            {% for r in regions %}
+                <option value="{{ r }}">{{ r }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="problem">Enter Health Problem:</label>
+        <input type="text" id="problem" placeholder="e.g. heart, bone, skin...">
+
+        <div id="doctors"></div>
+        <div id="booking"></div>
+    </div>
+
+    <br>
+    <form action="/logout" method="get">
+        <button type="submit">Logout</button>
+    </form>
+
+    <script>
+        $(document).ready(function() {
+            $('#problem').on('blur', function() {
+                const region = $('#region').val();
+                const problem = $('#problem').val();
+                if (region && problem) {
+                    $.post('/get_doctors', JSON.stringify({ region, problem }), function(data) {
+                        let html = '<label>Select Doctor:</label><select id="doctor_id">';
+                        data.forEach(doc => {
+                            html += `<option value="${doc.id}">${doc.name}</option>`;
+                        });
+                        html += '</select>';
+                        html += `
+                            <label>Date:</label>
+                            <input type="date" id="date">
+                            <label>Time Slot:</label>
+                            <select id="time_slot">
+                                <option value="morning">Morning</option>
+                                <option value="afternoon">Afternoon</option>
+                                <option value="evening">Evening</option>
+                            </select>
+                            <button id="bookBtn">Book Appointment</button>
+                        `;
+                        $('#doctors').html(html);
+                    }, 'json');
+                }
+            });
+
+            $(document).on('click', '#bookBtn', function() {
+                const doctor_id = $('#doctor_id').val();
+                const date = $('#date').val();
+                const time_slot = $('#time_slot').val();
+                const patient_name = '{{ patient_name }}';
+
+                $.post('/book_appointment', JSON.stringify({ doctor_id, date, time_slot, patient_name }), function(resp) {
+                    alert(resp.message);
+                    location.reload();
+                }, 'json');
+            });
+        });
+    </script>
+</body>
+</html>

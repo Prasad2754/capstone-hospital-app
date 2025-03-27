@@ -1,0 +1,113 @@
+<!-- templates/auth.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login / Sign Up</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #232526, #414345);
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .auth-box {
+            background: #1c1c1c;
+            padding: 30px;
+            border-radius: 10px;
+            width: 350px;
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 25px;
+            margin-top: 15px;
+            background: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .link {
+            color: #0af;
+            cursor: pointer;
+            margin-top: 15px;
+            display: block;
+        }
+
+        #message {
+            margin-top: 10px;
+            color: lightcoral;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-box">
+        <h2 id="form-title">Login</h2>
+
+        <input type="text" id="login_id" placeholder="Email or Phone" required />
+        <input type="password" id="password" placeholder="Password" required />
+
+        <button onclick="submitForm()">Submit</button>
+        <p class="link" onclick="toggleMode()">Don't have an account? Sign up</p>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let isLogin = true;
+
+        function toggleMode() {
+            isLogin = !isLogin;
+            document.getElementById("form-title").innerText = isLogin ? "Login" : "Sign Up";
+            document.querySelector(".link").innerText = isLogin
+                ? "Don't have an account? Sign up"
+                : "Already have an account? Login";
+        }
+
+        async function submitForm() {
+            const login_id = document.getElementById("login_id").value;
+            const password = document.getElementById("password").value;
+
+            const url = isLogin ? "/login" : "/register";
+            const body = isLogin
+                ? { login_id, password }
+                : { email: login_id.includes('@') ? login_id : null, phone: !login_id.includes('@') ? login_id : null, password };
+
+            try {
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+
+                const data = await res.json();
+                document.getElementById("message").innerText = data.message;
+
+                if (res.ok && isLogin) {
+                    window.location.href = data.role === "admin" ? "/admin" : "/dashboard";
+                }
+            } catch (err) {
+                document.getElementById("message").innerText = "Error: " + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

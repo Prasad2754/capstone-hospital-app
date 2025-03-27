@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 30px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .logout {
+            float: right;
+            background-color: crimson;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <form action="/logout" method="get">
+        <button class="logout">Logout</button>
+    </form>
+
+    <h2>Welcome Admin: {{ admin_name }}</h2>
+
+    <div class="section">
+        <h3>Registered Users</h3>
+        <table>
+            <tr>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Registered On</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.email or '-' }}</td>
+                <td>{{ user.phone or '-' }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.registered_on }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>All Appointments</h3>
+        <table>
+            <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+            {% for appt in appointments %}
+            <tr>
+                <td>{{ appt.patient_name }}</td>
+                <td>{{ appt.doctor_name }}</td>
+                <td>{{ appt.date }}</td>
+                <td>{{ appt.time_slot }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</body>
+</html>

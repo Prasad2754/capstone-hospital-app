@@ -13,7 +13,7 @@
         }
 
         .dashboard {
-            background-color: rgba(0, 0, 0, 0.7); /* semi-transparent */
+            background-color: rgba(0, 0, 0, 0.8);
             margin: 50px auto;
             padding: 30px;
             border-radius: 12px;
@@ -21,13 +21,17 @@
             max-width: 800px;
         }
 
-        h2 {
+        h2, h3 {
             color: #ffffff;
+        }
+
+        ul {
+            list-style: disc;
+            padding-left: 20px;
         }
 
         .appointment {
             margin-bottom: 20px;
-            padding-left: 20px;
         }
 
         strong {
@@ -41,19 +45,50 @@
             padding: 12px 20px;
             font-size: 16px;
             border-radius: 5px;
-            margin-top: 30px;
+            margin-bottom: 30px;
             cursor: pointer;
         }
 
         .logout-btn:hover {
             background: #b30000;
         }
+
+        .form-section {
+            margin-top: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        label, select, input, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        select, input {
+            background: #fff;
+            color: #000;
+        }
+
+        button.book {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+        }
+
+        button.book:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <h2>Welcome, {{ patient_name }}</h2>
-
         <h3>Here are your upcoming appointments:</h3>
         <ul>
             {% for appt in appointments %}
@@ -67,6 +102,80 @@
         <form action="/logout">
             <button type="submit" class="logout-btn">Logout</button>
         </form>
+
+        <div class="form-section">
+            <h3>Book an Appointment</h3>
+            <label for="region">Select Region:</label>
+            <select id="region">
+                {% for region in regions %}
+                    <option value="{{ region }}">{{ region }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="problem">Enter Health Problem:</label>
+            <input type="text" id="problem" placeholder="e.g., skin, heart, bone, kids" />
+
+            <label for="doctor">Select Doctor:</label>
+            <select id="doctor"></select>
+
+            <label for="date">Select Date:</label>
+            <input type="date" id="date" />
+
+            <label for="slot">Select Time Slot:</label>
+            <select id="slot">
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+            </select>
+
+            <button class="book" onclick="bookAppointment()">Book Appointment</button>
+        </div>
     </div>
+
+    <script>
+        async function fetchDoctors() {
+            const region = document.getElementById("region").value;
+            const problem = document.getElementById("problem").value;
+
+            const res = await fetch("/get_doctors", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ region, problem })
+            });
+
+            const doctors = await res.json();
+            const docSelect = document.getElementById("doctor");
+            docSelect.innerHTML = "";
+
+            doctors.forEach(doc => {
+                const option = document.createElement("option");
+                option.value = doc.id;
+                option.innerText = doc.name;
+                docSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById("region").addEventListener("change", fetchDoctors);
+        document.getElementById("problem").addEventListener("input", fetchDoctors);
+
+        async function bookAppointment() {
+            const doctor_id = document.getElementById("doctor").value;
+            const time_slot = document.getElementById("slot").value;
+            const date = document.getElementById("date").value;
+            const patient_name = "{{ patient_name }}";
+
+            const res = await fetch("/book_appointment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ doctor_id, time_slot, date, patient_name })
+            });
+
+            const result = await res.json();
+            alert(result.message || result.error);
+            if (res.ok) {
+                location.reload();
+            }
+        }
+    </script>
 </body>
 </html>

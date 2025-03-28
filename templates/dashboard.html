@@ -1,64 +1,72 @@
-<!-- templates/dashboard.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Patient Dashboard</title>
     <style>
         body {
-            background: url("/static/"C:\Users\DELL\Desktop\CAPSTONE\static\entrance.avif"") no-repeat center center fixed;
+            background: url("{{ url_for('static', filename='entrance.jpg') }}") no-repeat center center fixed;
             background-size: cover;
             font-family: Arial, sans-serif;
-            color: black;
-            padding: 20px;
+            color: white;
+            margin: 0;
+            padding: 0;
         }
-        .card {
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
+
+        .dashboard {
+            background-color: rgba(0, 0, 0, 0.7); /* semi-transparent */
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 800px;
         }
-        h2, h3 {
-            color: #222;
+
+        h2 {
+            color: #ffffff;
         }
-        ul {
-            background: rgba(255,255,255,0.9);
-            padding: 15px;
-            border-radius: 10px;
+
+        .appointment {
+            margin-bottom: 20px;
+            padding-left: 20px;
         }
-        li {
-            margin-bottom: 10px;
+
+        strong {
+            color: #ffd700;
         }
+
         .logout-btn {
             background: crimson;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin-top: 20px;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-top: 30px;
             cursor: pointer;
-            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: #b30000;
         }
     </style>
 </head>
 <body>
-    <h2>Welcome, {{ patient_name }}</h2>
-    <h3>Here are your upcoming appointments:</h3>
+    <div class="dashboard">
+        <h2>Welcome, {{ patient_name }}</h2>
 
-    {% if appointments %}
+        <h3>Here are your upcoming appointments:</h3>
         <ul>
-            {% for a in appointments %}
-                <li>
-                    <b>{{ a.doctor_name }}</b> on {{ a.date }} at {{ a.time_slot }}<br>
-                    <b>Hospital:</b> {{ a.hospital_address }}
+            {% for appt in appointments %}
+                <li class="appointment">
+                    <strong>Dr. {{ appt.doctor_name }}</strong> on {{ appt.date }} at {{ appt.time_slot }}<br>
+                    <strong>Hospital:</strong> {{ appt.hospital_address }}
                 </li>
             {% endfor %}
         </ul>
-    {% else %}
-        <p>No appointments found.</p>
-    {% endif %}
 
-    <form action="/logout" method="get">
-        <button class="logout-btn">Logout</button>
-    </form>
+        <form action="/logout">
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </div>
 </body>
 </html>

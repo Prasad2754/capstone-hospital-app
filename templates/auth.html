@@ -1,4 +1,3 @@
-<!-- templates/auth.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,6 +21,26 @@
             border-radius: 10px;
             width: 350px;
             text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        .warning {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #ff4d4d;
+            text-shadow: 0 0 5px #ff4d4d, 0 0 10px #ff4d4d;
+            animation: pulse 1.8s infinite;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         input {
@@ -64,6 +83,12 @@
     <div class="auth-box">
         <h2 id="form-title">Login</h2>
 
+        <!-- Funny warning -->
+        <p class="warning">
+            ⚠️ DONT ENTER WRONG DETAILS BY LOOKING AT ME<br>
+            ESPECIALLY YOUNGSTERS 😎
+        </p>
+
         <input type="text" id="login_id" placeholder="Email or Phone" required />
         <input type="password" id="password" placeholder="Password" required />
 
@@ -91,7 +116,11 @@
             const url = isLogin ? "/login" : "/register";
             const body = isLogin
                 ? { login_id, password }
-                : { email: login_id.includes('@') ? login_id : null, phone: !login_id.includes('@') ? login_id : null, password };
+                : {
+                    email: login_id.includes('@') ? login_id : null,
+                    phone: !login_id.includes('@') ? login_id : null,
+                    password
+                };
 
             try {
                 const res = await fetch(url, {

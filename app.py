@@ -3,7 +3,6 @@ from flask_cors import CORS
 from flask_session import Session
 from auth import auth
 from db_config import get_connection
-import boto3
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
@@ -12,36 +11,6 @@ Session(app)
 
 CORS(app)
 app.register_blueprint(auth)
-
-# Email notification function using AWS SES
-def send_email_notification(to_email, doctor_name, date, time_slot, hospital_address):
-    ses = boto3.client('ses', region_name='us-east-1')
-    ses.send_email(
-        Source="gollabhavaniprasad@gmail.com",
-        Destination={"ToAddresses": [to_email]},
-        Message={
-            "Subject": {"Data": "Thank you for booking your appointment!"},
-            "Body": {
-                "Text": {
-                    "Data": f"""
-Hello,
-
-Thank you for booking your appointment!
-
-✅ Doctor: Dr. {doctor_name}
-📅 Date: {date}
-🕒 Time: {time_slot}
-🏥 Hospital: {hospital_address}
-
-Please arrive 10 minutes early and bring your ID.
-
-Regards,  
-Capstone Regional Hospital
-                    """
-                }
-            }
-        }
-    )
 
 @app.route("/")
 def home():
@@ -192,19 +161,8 @@ def book_appointment():
         """, (doctor_id, patient_name, date, time_slot))
         conn.commit()
 
-        cur.execute("""
-            SELECT d.name, d.hospital_address FROM doctors d WHERE d.doctor_id = %s
-        """, (doctor_id,))
-        doctor_info = cur.fetchone()
-
-        cur.execute("SELECT email FROM users WHERE COALESCE(email, phone) = %s", (patient_name,))
-        user_email = cur.fetchone()[0] if cur.rowcount > 0 else None
-
         cur.close()
         conn.close()
-
-        if user_email:
-            send_email_notification(user_email, doctor_info[0], date, time_slot, doctor_info[1])
 
         return jsonify({"message": "Appointment booked successfully!"})
 

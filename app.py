@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from flask_cors import CORS
 from flask_session import Session
-from auth import auth  # Auth blueprint
+from auth import auth
 from db_config import get_connection
 
 app = Flask(__name__)
@@ -12,12 +12,10 @@ Session(app)
 CORS(app)
 app.register_blueprint(auth)
 
-# Updated home route for welcome page
 @app.route("/")
 def home():
     return render_template("home.html")
 
-# Login/signup screen
 @app.route("/auth")
 def auth_page():
     return render_template("auth.html")
@@ -34,9 +32,8 @@ def dashboard():
         cur.execute("SELECT COALESCE(email, phone) FROM users WHERE user_id = %s", (session["user_id"],))
         user_identity = cur.fetchone()[0]
 
-        # Get appointments booked by this user
         cur.execute("""
-            SELECT d.name, a.date, a.time_slot
+            SELECT d.name, a.date, a.time_slot, d.hospital_address
             FROM appointments a
             JOIN doctors d ON a.doctor_id = d.doctor_id
             WHERE a.patient_name = %s
@@ -49,7 +46,12 @@ def dashboard():
         cur.close()
         conn.close()
 
-        appt_data = [{"doctor_name": row[0], "date": row[1], "time_slot": row[2]} for row in appointments]
+        appt_data = [{
+            "doctor_name": row[0],
+            "date": row[1],
+            "time_slot": row[2],
+            "hospital_address": row[3]
+        } for row in appointments]
 
         return render_template("dashboard.html", patient_name=user_identity, appointments=appt_data, regions=regions)
 
@@ -77,12 +79,18 @@ def admin_dashboard():
         user_list = [{"email": u[0], "phone": u[1], "role": u[2], "registered_on": u[3]} for u in users]
 
         cur.execute("""
-            SELECT a.patient_name, d.name, a.date, a.time_slot
+            SELECT a.patient_name, d.name, a.date, a.time_slot, d.hospital_address
             FROM appointments a
             JOIN doctors d ON a.doctor_id = d.doctor_id
         """)
         appointments = cur.fetchall()
-        appt_list = [{"patient_name": a[0], "doctor_name": a[1], "date": a[2], "time_slot": a[3]} for a in appointments]
+        appt_list = [{
+            "patient_name": a[0],
+            "doctor_name": a[1],
+            "date": a[2],
+            "time_slot": a[3],
+            "hospital_address": a[4]
+        } for a in appointments]
 
         cur.close()
         conn.close()
@@ -104,6 +112,19 @@ def get_doctors():
     region = data.get("region")
     problem = data.get("problem")
 
+    problem_specialty_map = {
+        "heart": "Cardiologist",
+        "bone": "Orthopedic",
+        "skin": "Dermatologist",
+        "brain": "Neurologist",
+        "kids": "Pediatrician",
+        "mental": "Psychiatrist",
+        "general": "General Physician",
+        "ear": "ENT"
+    }
+
+    specialty = problem_specialty_map.get(problem.lower(), problem)
+
     try:
         conn = get_connection()
         cur = conn.cursor()
@@ -111,7 +132,7 @@ def get_doctors():
         cur.execute("""
             SELECT doctor_id, name FROM doctors
             WHERE region = %s AND LOWER(specialty) LIKE %s
-        """, (region, f"%{problem.lower()}%"))
+        """, (region, f"%{specialty.lower()}%"))
         doctors = cur.fetchall()
 
         cur.close()

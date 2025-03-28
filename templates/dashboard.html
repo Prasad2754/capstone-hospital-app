@@ -1,161 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Patient Dashboard</title>
-    <style>
-        body {
-            background-color: #a0f0f0;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            padding: 20px;
-        }
-        .card {
-            background: #f2f2f2;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        select, input, button {
-            padding: 10px;
-            margin-top: 10px;
-            width: 100%;
-        }
-        h2, h3 {
-            color: #1a1a1a;
-        }
-        .logout-btn {
-            background: crimson;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            margin-top: 20px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Patient Dashboard</title>
+  <style>
+    body {
+      background-color: #a0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      padding: 20px;
+    }
+    .card {
+      background: #f2f2f2;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    select, input, button {
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    h2, h3 {
+      color: #1a1a1a;
+    }
+    .logout-btn {
+      background: crimson;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 <div class="container">
-    <h2>Welcome, {{ patient_name }}</h2>
-    <h3>Here are your upcoming appointments:</h3>
+  <h2>Welcome, {{ patient_name }}</h2>
+  <h3>Here are your upcoming appointments:</h3>
 
-    {% if appointments %}
-        <ul>
-            {% for a in appointments %}
-                <li><b>{{ a.doctor_name }}</b> on {{ a.date }} at {{ a.time_slot }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No appointments found.</p>
-    {% endif %}
+  {% if appointments %}
+    <ul>
+      {% for a in appointments %}
+        <li>
+          <b>{{ a.doctor_name }}</b> on {{ a.date }} at {{ a.time_slot }}<br>
+          <small><strong>Hospital:</strong> {{ a.hospital_address }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No appointments found.</p>
+  {% endif %}
 
-    <p><strong>Hospital Address:</strong> Whitby Regional Hospital, 123 Health Ave, Whitby, ON</p>
+  <div class="card">
+    <h3>Book an Appointment</h3>
+    <label>Select Region:</label>
+    <select id="region">
+      {% for r in regions %}
+        <option value="{{ r }}">{{ r }}</option>
+      {% endfor %}
+    </select>
 
-    <div class="card">
-        <h3>Book an Appointment</h3>
-        <label>Select Region:</label>
-        <select id="region">
-            {% for r in regions %}
-                <option value="{{ r }}">{{ r }}</option>
-            {% endfor %}
-        </select>
+    <label>Enter Health Problem:</label>
+    <input type="text" id="problem" placeholder="e.g., skin, heart, bone, kids">
 
-        <label>Enter Health Problem:</label>
-        <input type="text" id="problem" placeholder="e.g., skin, heart, bone, kids">
+    <div id="doctor-section"></div>
+  </div>
 
-        <div id="doctor-section"></div>
-    </div>
-
-    <form action="/logout" method="get">
-        <button class="logout-btn">Logout</button>
-    </form>
+  <form action="/logout" method="get">
+    <button class="logout-btn">Logout</button>
+  </form>
 </div>
 
-<!-- ✅ jQuery (needed for AJAX below) -->
+<!-- ✅ jQuery for AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    const regionEl = document.getElementById("region");
-    const problemEl = document.getElementById("problem");
-    const doctorSection = document.getElementById("doctor-section");
+  const regionEl = document.getElementById("region");
+  const problemEl = document.getElementById("problem");
+  const doctorSection = document.getElementById("doctor-section");
 
-    function fetchDoctors() {
-        const region = regionEl.value;
-        const problem = problemEl.value;
+  function fetchDoctors() {
+    const region = regionEl.value;
+    const problem = problemEl.value;
 
-        if (!problem) return;
+    if (!problem) return;
 
-        $.ajax({
-            url: "/get_doctors",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ region, problem }),
-            success: function(data) {
-                if (data.length === 0) {
-                    doctorSection.innerHTML = "<p>No doctors found.</p>";
-                    return;
-                }
-
-                let html = `
-                    <label>Select Doctor:</label>
-                    <select id="doctor">
-                        ${data.map(d => `<option value="${d.id}">${d.name}</option>`).join("")}
-                    </select>
-                    <label>Select Date:</label>
-                    <input type="date" id="date" />
-                    <label>Select Time Slot:</label>
-                    <select id="slot">
-                        <option value="Morning">Morning</option>
-                        <option value="Afternoon">Afternoon</option>
-                        <option value="Evening">Evening</option>
-                    </select>
-                    <button onclick="bookAppointment()">Book Appointment</button>
-                `;
-                doctorSection.innerHTML = html;
-            },
-            error: function(err) {
-                doctorSection.innerHTML = `<p style="color:red;">Error fetching doctors.</p>`;
-                console.error("AJAX Error:", err);
-            }
-        });
-    }
-
-    function bookAppointment() {
-        const doctorId = document.getElementById("doctor").value;
-        const date = document.getElementById("date").value;
-        const slot = document.getElementById("slot").value;
-        const patientName = "{{ patient_name }}";
-
-        if (!date || !slot) {
-            alert("Please select date and time slot");
-            return;
+    $.ajax({
+      url: "/get_doctors",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ region, problem }),
+      success: function(data) {
+        if (data.length === 0) {
+          doctorSection.innerHTML = "<p>No doctors found.</p>";
+          return;
         }
 
-        $.ajax({
-            url: "/book_appointment",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({
-                doctor_id: doctorId,
-                date,
-                time_slot: slot,
-                patient_name: patientName
-            }),
-            success: function(resp) {
-                alert(resp.message || "Appointment booked!");
-                location.reload();
-            },
-            error: function(err) {
-                alert("Booking failed!");
-                console.error("Booking error:", err);
-            }
-        });
+        let html = `
+          <label>Select Doctor:</label>
+          <select id="doctor">
+            ${data.map(d => `<option value="${d.id}">${d.name}</option>`).join("")}
+          </select>
+          <label>Select Date:</label>
+          <input type="date" id="date" />
+          <label>Select Time Slot:</label>
+          <select id="slot">
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option>
+          </select>
+          <button onclick="bookAppointment()">Book Appointment</button>
+        `;
+        doctorSection.innerHTML = html;
+      },
+      error: function(err) {
+        doctorSection.innerHTML = "<p style='color:red;'>Error fetching doctors.</p>";
+        console.error("Fetch error:", err);
+      }
+    });
+  }
+
+  function bookAppointment() {
+    const doctorId = document.getElementById("doctor").value;
+    const date = document.getElementById("date").value;
+    const slot = document.getElementById("slot").value;
+    const patientName = "{{ patient_name }}";
+
+    if (!date || !slot) {
+      alert("Please select date and time slot");
+      return;
     }
 
-    // Trigger fetch on interaction
-    regionEl.addEventListener("change", fetchDoctors);
-    problemEl.addEventListener("input", fetchDoctors);
+    $.ajax({
+      url: "/book_appointment",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        doctor_id: doctorId,
+        date,
+        time_slot: slot,
+        patient_name: patientName
+      }),
+      success: function(resp) {
+        alert(resp.message || "Appointment booked!");
+        location.reload();
+      },
+      error: function(err) {
+        alert("Booking failed!");
+        console.error("Booking error:", err);
+      }
+    });
+  }
+
+  regionEl.addEventListener("change", fetchDoctors);
+  problemEl.addEventListener("input", fetchDoctors);
 </script>
 </body>
 </html>

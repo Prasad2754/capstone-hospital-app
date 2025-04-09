@@ -85,114 +85,184 @@
             background-color: #218838;
         }
 
-        iframe {
+        #map {
             margin-top: 40px;
             border-radius: 12px;
             width: 100%;
             height: 400px;
-            border: none;
         }
     </style>
 </head>
 <body>
-    <div class="dashboard">
-        <h2>Welcome, {{ patient_name }}</h2>
-        <h3>Here are your upcoming appointments:</h3>
-        <ul>
-            {% for appt in appointments %}
-                <li class="appointment">
-                    <strong>Dr. {{ appt.doctor_name }}</strong> on {{ appt.date }} at {{ appt.time_slot }}<br>
-                    <strong>Hospital:</strong> {{ appt.hospital_address }}
-                </li>
+<div class="dashboard">
+    <h2>Welcome, {{ patient_name }}</h2>
+    <h3>Here are your upcoming appointments:</h3>
+    <ul>
+        {% for appt in appointments %}
+            <li class="appointment">
+                <strong>Dr. {{ appt.doctor_name }}</strong> on {{ appt.date }} at {{ appt.time_slot }}<br>
+                <strong>Hospital:</strong> {{ appt.hospital_address }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <form action="/logout">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+
+    <div class="form-section">
+        <h3>Book an Appointment</h3>
+        <label for="region">Select Region:</label>
+        <select id="region">
+            {% for region in regions %}
+                <option value="{{ region }}">{{ region }}</option>
             {% endfor %}
-        </ul>
+        </select>
 
-        <form action="/logout">
-            <button type="submit" class="logout-btn">Logout</button>
-        </form>
+        <label for="problem">Enter Health Problem:</label>
+        <input type="text" id="problem" placeholder="e.g., skin, heart, bone, kids" />
 
-        <div class="form-section">
-            <h3>Book an Appointment</h3>
-            <label for="region">Select Region:</label>
-            <select id="region">
-                {% for region in regions %}
-                    <option value="{{ region }}">{{ region }}</option>
-                {% endfor %}
-            </select>
+        <label for="doctor">Select Doctor:</label>
+        <select id="doctor"></select>
 
-            <label for="problem">Enter Health Problem:</label>
-            <input type="text" id="problem" placeholder="e.g., skin, heart, bone, kids" />
+        <label for="date">Select Date:</label>
+        <input type="date" id="date" />
 
-            <label for="doctor">Select Doctor:</label>
-            <select id="doctor"></select>
+        <label for="slot">Select Time Slot:</label>
+        <select id="slot">
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option>
+        </select>
 
-            <label for="date">Select Date:</label>
-            <input type="date" id="date" />
-
-            <label for="slot">Select Time Slot:</label>
-            <select id="slot">
-                <option value="Morning">Morning</option>
-                <option value="Afternoon">Afternoon</option>
-                <option value="Evening">Evening</option>
-            </select>
-
-            <button class="book" onclick="bookAppointment()">Book Appointment</button>
-        </div>
-
-        <!-- Embedded Google Map -->
-        <h3>Hospital Location</h3>
-        <iframe
-            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyAaSle-jJLRdGL0GeOgNZ8eYzZwbe7MFRs&q=Whitby+Hospital+Ontario+Canada"
-            allowfullscreen
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
+        <button class="book" onclick="bookAppointment()">Book Appointment</button>
     </div>
 
-    <script>
-        async function fetchDoctors() {
-            const region = document.getElementById("region").value;
-            const problem = document.getElementById("problem").value;
+    <!-- Dynamic Google Map -->
+    <h3>Nearby Hospitals</h3>
+    <div id="map"></div>
+</div>
 
-            const res = await fetch("/get_doctors", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ region, problem })
-            });
+<script>
+    async function fetchDoctors() {
+        const region = document.getElementById("region").value;
+        const problem = document.getElementById("problem").value;
 
-            const doctors = await res.json();
-            const docSelect = document.getElementById("doctor");
-            docSelect.innerHTML = "";
+        const res = await fetch("/get_doctors", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ region, problem })
+        });
 
-            doctors.forEach(doc => {
-                const option = document.createElement("option");
-                option.value = doc.id;
-                option.innerText = doc.name;
-                docSelect.appendChild(option);
-            });
+        const doctors = await res.json();
+        const docSelect = document.getElementById("doctor");
+        docSelect.innerHTML = "";
+
+        doctors.forEach(doc => {
+            const option = document.createElement("option");
+            option.value = doc.id;
+            option.innerText = doc.name;
+            docSelect.appendChild(option);
+        });
+    }
+
+    document.getElementById("region").addEventListener("change", fetchDoctors);
+    document.getElementById("problem").addEventListener("input", fetchDoctors);
+
+    async function bookAppointment() {
+        const doctor_id = document.getElementById("doctor").value;
+        const time_slot = document.getElementById("slot").value;
+        const date = document.getElementById("date").value;
+        const patient_name = "{{ patient_name }}";
+
+        const res = await fetch("/book_appointment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ doctor_id, time_slot, date, patient_name })
+        });
+
+        const result = await res.json();
+        alert(result.message || result.error);
+        if (res.ok) {
+            location.reload();
         }
+    }
 
-        document.getElementById("region").addEventListener("change", fetchDoctors);
-        document.getElementById("problem").addEventListener("input", fetchDoctors);
+    function initMap() {
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: { lat: 43.8971, lng: -78.8658 } // default center
+        });
 
-        async function bookAppointment() {
-            const doctor_id = document.getElementById("doctor").value;
-            const time_slot = document.getElementById("slot").value;
-            const date = document.getElementById("date").value;
-            const patient_name = "{{ patient_name }}";
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const userLoc = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                map.setCenter(userLoc);
 
-            const res = await fetch("/book_appointment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ doctor_id, time_slot, date, patient_name })
-            });
+                new google.maps.Marker({
+                    position: userLoc,
+                    map: map,
+                    title: "Your Location",
+                    icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                });
 
-            const result = await res.json();
-            alert(result.message || result.error);
-            if (res.ok) {
-                location.reload();
-            }
+                const hospitals = [
+                    {
+                        name: "Port Perry Skin Clinic",
+                        lat: 44.1058,
+                        lng: -78.9433,
+                        address: "63 Derm St, Port Perry"
+                    },
+                    {
+                        name: "Lakeridge Health Whitby",
+                        lat: 43.8457,
+                        lng: -78.9321,
+                        address: "300 Gordon St, Whitby"
+                    }
+                ];
+
+                const service = new google.maps.DistanceMatrixService();
+                const destinations = hospitals.map(h => ({ lat: h.lat, lng: h.lng }));
+
+                service.getDistanceMatrix({
+                    origins: [userLoc],
+                    destinations: destinations,
+                    travelMode: 'DRIVING'
+                }, (response, status) => {
+                    if (status === 'OK') {
+                        response.rows[0].elements.forEach((result, i) => {
+                            const hospital = hospitals[i];
+                            const marker = new google.maps.Marker({
+                                position: { lat: hospital.lat, lng: hospital.lng },
+                                map,
+                                title: `${hospital.name} (${result.distance.text})`
+                            });
+
+                            const info = new google.maps.InfoWindow({
+                                content: `<strong>${hospital.name}</strong><br>${hospital.address}<br>Distance: ${result.distance.text}`
+                            });
+
+                            marker.addListener("click", () => {
+                                info.open(map, marker);
+                            });
+                        });
+                    } else {
+                        alert("Error getting distance data: " + status);
+                    }
+                });
+
+            }, () => alert("Location permission denied."));
+        } else {
+            alert("Geolocation not supported.");
         }
-    </script>
+    }
+</script>
+
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAaSle-jJLRdGL0GeOgNZ8eYzZwbe7MFRs&callback=initMap">
+</script>
 </body>
 </html>

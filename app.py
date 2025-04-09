@@ -101,11 +101,11 @@ def admin_dashboard():
         print("Admin dashboard error:", e)
         return "Error loading admin dashboard", 500
 
-# ✅ Fixed logout route decorator
+# ✅ FIXED LOGOUT FUNCTION
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('auth_page'))  # Redirects to the login screen
+    return redirect(url_for('auth_page'))  # Redirects user to /auth login screen
 
 @app.route("/get_doctors", methods=["POST"])
 def get_doctors():

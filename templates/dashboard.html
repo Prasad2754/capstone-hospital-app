@@ -1,5 +1,3 @@
-<!-- Replace your existing dashboard.html content with the code below -->
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,7 +13,7 @@
         }
 
         .dashboard {
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85);
             margin: 50px auto;
             padding: 30px;
             border-radius: 12px;
@@ -116,7 +114,7 @@
         {% endfor %}
     </ul>
 
-    <form action="/logout">
+    <form method="GET" action="/logout">
         <button type="submit" class="logout-btn">Logout</button>
     </form>
 
@@ -148,7 +146,7 @@
         <button class="book" onclick="bookAppointment()">Book Appointment</button>
     </div>
 
-    <!-- Dynamic Google Map -->
+    <!-- Google Map + Distance Info -->
     <h3>Nearby Hospitals</h3>
     <div id="map"></div>
     <div id="distance-info"></div>
@@ -257,14 +255,14 @@
                             });
 
                             const info = new google.maps.InfoWindow({
-                                content: `<strong>${hospital.name}</strong><br>${hospital.address}<br>Distance: ${result.distance.text}`
+                                content: `<strong>${hospital.name}</strong><br>${hospital.address}<br>Distance: ${result.distance.text}<br>Time: ${result.duration.text}`
                             });
 
                             marker.addListener("click", () => {
                                 info.open(map, marker);
                             });
 
-                            distanceInfoDiv.innerHTML += `${hospital.name}: ${result.distance.text} (${result.duration.text})<br>`;
+                            distanceInfoDiv.innerHTML += `<strong>${hospital.name}</strong>: ${result.distance.text} (${result.duration.text})<br>`;
                         });
                     } else {
                         alert("DistanceMatrix error: " + status);
@@ -277,9 +275,8 @@
     }
 </script>
 
-<!-- ✅ YOUR API KEY HERE -->
 <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAaSle-jJLRdGL0GeOgNZ8eYzZwbe7MFRs&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAaSle-jJLRdGL0GeOgNZ8eYzZwbe7MFRs&callback=initMap">
 </script>
 </body>
 </html>

@@ -2,8 +2,11 @@ services:
   - type: web
     name: capstone-hospital-app
     runtime: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"
+    region: oregon  # You can change region if needed
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: SECRET_KEY
+        value: super_secret_key  # or load from .env if preferred

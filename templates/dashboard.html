@@ -1,3 +1,5 @@
+<!-- Replace your existing dashboard.html content with the code below -->
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -91,6 +93,14 @@
             width: 100%;
             height: 400px;
         }
+
+        #distance-info {
+            background: #fff;
+            color: #000;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -141,6 +151,7 @@
     <!-- Dynamic Google Map -->
     <h3>Nearby Hospitals</h3>
     <div id="map"></div>
+    <div id="distance-info"></div>
 </div>
 
 <script>
@@ -191,7 +202,7 @@
     function initMap() {
         const map = new google.maps.Map(document.getElementById("map"), {
             zoom: 12,
-            center: { lat: 43.8971, lng: -78.8658 } // default center
+            center: { lat: 43.8971, lng: -78.8658 }
         });
 
         if (navigator.geolocation) {
@@ -224,8 +235,8 @@
                     }
                 ];
 
-                const service = new google.maps.DistanceMatrixService();
                 const destinations = hospitals.map(h => ({ lat: h.lat, lng: h.lng }));
+                const service = new google.maps.DistanceMatrixService();
 
                 service.getDistanceMatrix({
                     origins: [userLoc],
@@ -233,8 +244,12 @@
                     travelMode: 'DRIVING'
                 }, (response, status) => {
                     if (status === 'OK') {
+                        const distanceInfoDiv = document.getElementById("distance-info");
+                        distanceInfoDiv.innerHTML = "<strong>Distance to Hospitals:</strong><br>";
+
                         response.rows[0].elements.forEach((result, i) => {
                             const hospital = hospitals[i];
+
                             const marker = new google.maps.Marker({
                                 position: { lat: hospital.lat, lng: hospital.lng },
                                 map,
@@ -248,19 +263,21 @@
                             marker.addListener("click", () => {
                                 info.open(map, marker);
                             });
+
+                            distanceInfoDiv.innerHTML += `${hospital.name}: ${result.distance.text} (${result.duration.text})<br>`;
                         });
                     } else {
-                        alert("Error getting distance data: " + status);
+                        alert("DistanceMatrix error: " + status);
                     }
                 });
-
             }, () => alert("Location permission denied."));
         } else {
-            alert("Geolocation not supported.");
+            alert("Geolocation not supported by your browser.");
         }
     }
 </script>
 
+<!-- ✅ YOUR API KEY HERE -->
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAaSle-jJLRdGL0GeOgNZ8eYzZwbe7MFRs&callback=initMap">
 </script>

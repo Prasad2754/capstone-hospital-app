@@ -143,10 +143,9 @@
             <option value="Evening">Evening</option>
         </select>
 
-        <button class="book" onclick="bookAppointment()">Book Appointment</button>
+        <button class="book" onclick="bookAppointment(event)">Book Appointment</button>
     </div>
 
-    <!-- Google Map + Distance Info -->
     <h3>Nearby Hospitals</h3>
     <div id="map"></div>
     <div id="distance-info"></div>
@@ -178,7 +177,9 @@
     document.getElementById("region").addEventListener("change", fetchDoctors);
     document.getElementById("problem").addEventListener("input", fetchDoctors);
 
-    async function bookAppointment() {
+    async function bookAppointment(event) {
+        event.preventDefault();
+
         const doctor_id = document.getElementById("doctor").value;
         const time_slot = document.getElementById("slot").value;
         const date = document.getElementById("date").value;
@@ -275,6 +276,7 @@
     }
 </script>
 
+<!-- ✅ Load Google Maps -->
 <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAaSle-jJLRdGL0GeOgNZ8eYzZwbe7MFRs&callback=initMap">
 </script>

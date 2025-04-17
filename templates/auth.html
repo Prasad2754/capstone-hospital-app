@@ -26,7 +26,7 @@
       left: 0;
       height: 100%;
       width: 100%;
-      background: rgba(255, 255, 255, 0.4); /* Light transparent overlay */
+      background: rgba(255, 255, 255, 0.4);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -53,23 +53,31 @@
       margin-bottom: 10px;
       text-align: center;
     }
+    .form-success {
+      color: green;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
-<!-- Video background -->
+<!-- Background Video -->
 <video autoplay muted loop class="video-background">
   <source src="{{ url_for('static', filename='hospital.mp4') }}" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
-<!-- Overlay with login card -->
 <div class="overlay">
   <div class="card">
     <h2 class="text-center mb-4" id="formTitle">Login</h2>
+
     <div id="formMessage" class="form-error"></div>
+    <div id="formSuccess" class="form-success"></div>
 
     <form id="authForm" onsubmit="submitForm(event)">
+      <!-- Login Fields -->
       <div id="loginFields">
         <div class="mb-3">
           <input type="text" id="loginId" class="form-control" placeholder="Email or Phone" required>
@@ -79,6 +87,7 @@
         </div>
       </div>
 
+      <!-- Registration Fields -->
       <div id="registerFields" style="display: none;">
         <div class="mb-3">
           <input type="email" id="regEmail" class="form-control" placeholder="Email">
@@ -111,11 +120,13 @@
     document.getElementById("formTitle").innerText = isLogin ? "Login" : "Sign Up";
     document.getElementById("toggleText").innerText = isLogin ? "Don't have an account?" : "Already have an account?";
     document.getElementById("formMessage").innerText = "";
+    document.getElementById("formSuccess").innerText = "";
   }
 
   function submitForm(event) {
     event.preventDefault();
     document.getElementById("formMessage").innerText = "";
+    document.getElementById("formSuccess").innerText = "";
 
     if (isLogin) {
       const loginId = document.getElementById("loginId").value.trim();
@@ -129,12 +140,16 @@
       .then(res => res.json())
       .then(data => {
         if (data.message === "Login successful!") {
-          window.location.href = "/dashboard";
+          if (data.role === "admin") {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = "/dashboard";
+          }
         } else {
           document.getElementById("formMessage").innerText = data.message || "Login failed.";
         }
       })
-      .catch(err => {
+      .catch(() => {
         document.getElementById("formMessage").innerText = "Error during login.";
       });
 
@@ -146,18 +161,18 @@
       fetch("/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, phone: phone, password: password })
+        body: JSON.stringify({ email, phone, password })
       })
       .then(res => res.json())
       .then(data => {
         if (data.message === "Registration successful!") {
-          document.getElementById("formMessage").innerText = "Registered successfully! Now Login.";
+          document.getElementById("formSuccess").innerText = "Registered successfully! Please log in.";
           toggleForm();
         } else {
           document.getElementById("formMessage").innerText = data.message || "Registration failed.";
         }
       })
-      .catch(err => {
+      .catch(() => {
         document.getElementById("formMessage").innerText = "Error during registration.";
       });
     }

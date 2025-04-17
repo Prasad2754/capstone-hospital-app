@@ -4,7 +4,7 @@ from flask_session import Session
 from auth import auth
 from db_config import get_connection
 import random
-from datetime import date  # ✅ Added for today's date
+from datetime import date
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
@@ -99,6 +99,8 @@ def get_doctors_list():
 @app.route("/quick_book/<int:doctor_id>")
 def quick_book(doctor_id):
     if "user_id" not in session:
+        # If not logged in, save the selected doctor temporarily
+        session["pending_doctor_id"] = doctor_id
         return redirect(url_for('auth_page'))
 
     try:

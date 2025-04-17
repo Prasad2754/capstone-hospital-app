@@ -26,7 +26,7 @@
       left: 0;
       height: 100%;
       width: 100%;
-      background: rgba(255, 255, 255, 0.8); /* soft white overlay for readability */
+      background: rgba(255, 255, 255, 0.4); /* ✨ Less white (was 0.8 before) */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -44,13 +44,13 @@
 </head>
 <body>
 
-<!-- ✅ Video Background from /static/hospital.mp4 -->
+<!-- Video Background -->
 <video autoplay muted loop class="video-background">
   <source src="{{ url_for('static', filename='hospital.mp4') }}" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
-<!-- Overlay Content -->
+<!-- Content Overlay -->
 <div class="overlay">
   <h1 class="mb-4">Welcome to Capstone Hospital Appointment Center</h1>
   <p class="lead mb-4">Your health is our priority.</p>

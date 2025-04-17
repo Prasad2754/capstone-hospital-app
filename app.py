@@ -6,6 +6,7 @@ from db_config import get_connection
 import random
 from datetime import date
 
+# Create Flask app (IMPORTANT: must be named 'app')
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
 app.config["SESSION_TYPE"] = "filesystem"
@@ -25,7 +26,7 @@ def auth_page():
 @app.route("/dashboard")
 def dashboard():
     if "user_id" not in session:
-        return redirect(url_for("home"))
+        return redirect(url_for("auth_page"))
 
     try:
         conn = get_connection()
@@ -99,8 +100,7 @@ def get_doctors_list():
 @app.route("/quick_book/<int:doctor_id>")
 def quick_book(doctor_id):
     if "user_id" not in session:
-        # If not logged in, save the selected doctor temporarily
-        session["pending_doctor_id"] = doctor_id
+        session["pending_doctor_id"] = doctor_id  # Save pending booking
         return redirect(url_for('auth_page'))
 
     try:
@@ -128,5 +128,6 @@ def quick_book(doctor_id):
         print("Quick book error:", e)
         return "Error booking appointment", 500
 
+# Only for local testing (Render will ignore this)
 if __name__ == "__main__":
     app.run(debug=True)

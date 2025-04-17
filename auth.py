@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, redirect, url_for
 import bcrypt
 from db_config import get_connection
 import re
@@ -84,4 +84,4 @@ def login():
 @auth.route("/logout", methods=["GET"])
 def logout():
     session.clear()
-    return jsonify({"message": "Logged out successfully"}), 200
+    return redirect(url_for('auth_page'))  # ✅ Now redirects to /auth after logout

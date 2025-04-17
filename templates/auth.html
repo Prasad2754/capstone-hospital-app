@@ -1,144 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login / Sign Up</title>
-    <style>
-        body {
-            background: url("{{ url_for('static', filename='my_image.jpg') }}") no-repeat center center fixed;
-            background-size: cover;
-            font-family: Arial, sans-serif;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .auth-box {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 30px;
-            border-radius: 10px;
-            width: 350px;
-            text-align: center;
-        }
-
-        h2 {
-            margin-bottom: 10px;
-        }
-
-        .warning {
-            margin-top: 10px;
-            font-weight: bold;
-            color: #ff4d4d;
-            text-shadow: 0 0 5px #ff4d4d, 0 0 10px #ff4d4d;
-            animation: pulse 1.8s infinite;
-            font-size: 15px;
-            line-height: 1.4;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        input {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-        }
-
-        button {
-            padding: 10px 25px;
-            margin-top: 15px;
-            background: #007bff;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        .link {
-            color: #0af;
-            cursor: pointer;
-            margin-top: 15px;
-            display: block;
-        }
-
-        #message {
-            margin-top: 10px;
-            color: lightcoral;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Login / Sign Up - Capstone Hospital</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 100%;
+    }
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div class="auth-box">
-        <h2 id="form-title">Login</h2>
 
-        <!-- Funny warning -->
-        <p class="warning">
-            ⚠️ DONT ENTER WRONG DETAILS BY LOOKING AT ME<br>
-            ESPECIALLY YOUNGSTERS 😎
-        </p>
+<div class="card">
+  <h2 class="text-center mb-4" id="formTitle">Login</h2>
+  
+  <div id="formMessage" class="text-center text-danger mb-3"></div>
 
-        <input type="text" id="login_id" placeholder="Email or Phone" required />
-        <input type="password" id="password" placeholder="Password" required />
-
-        <button onclick="submitForm()">Submit</button>
-        <p class="link" onclick="toggleMode()">Don't have an account? Sign up</p>
-
-        <div id="message"></div>
+  <form id="authForm" onsubmit="submitForm(event)">
+    <div id="loginFields">
+      <div class="mb-3">
+        <input type="text" id="loginId" class="form-control" placeholder="Email or Phone" required>
+      </div>
+      <div class="mb-3">
+        <input type="password" id="loginPassword" class="form-control" placeholder="Password" required>
+      </div>
     </div>
 
-    <script>
-        let isLogin = true;
+    <div id="registerFields" style="display: none;">
+      <div class="mb-3">
+        <input type="email" id="regEmail" class="form-control" placeholder="Email">
+      </div>
+      <div class="mb-3">
+        <input type="text" id="regPhone" class="form-control" placeholder="Phone">
+      </div>
+      <div class="mb-3">
+        <input type="password" id="regPassword" class="form-control" placeholder="Password" required>
+      </div>
+    </div>
 
-        function toggleMode() {
-            isLogin = !isLogin;
-            document.getElementById("form-title").innerText = isLogin ? "Login" : "Sign Up";
-            document.querySelector(".link").innerText = isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Login";
+    <button type="submit" class="btn btn-primary w-100">Submit</button>
+  </form>
+
+  <div class="text-center mt-3">
+    <small id="toggleText">Don't have an account?</small>
+    <button class="toggle-btn" onclick="toggleForm()">Sign Up</button>
+  </div>
+</div>
+
+<script>
+  let isLogin = true;
+
+  function toggleForm() {
+    isLogin = !isLogin;
+    document.getElementById("loginFields").style.display = isLogin ? "block" : "none";
+    document.getElementById("registerFields").style.display = isLogin ? "none" : "block";
+    document.getElementById("formTitle").innerText = isLogin ? "Login" : "Sign Up";
+    document.getElementById("toggleText").innerText = isLogin ? "Don't have an account?" : "Already have an account?";
+  }
+
+  function submitForm(event) {
+    event.preventDefault();
+
+    if (isLogin) {
+      const loginId = document.getElementById("loginId").value;
+      const password = document.getElementById("loginPassword").value;
+
+      fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login_id: loginId, password: password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message === "Login successful!") {
+          window.location.href = "/dashboard";  // Redirect to dashboard after login
+        } else {
+          document.getElementById("formMessage").innerText = data.message;
         }
+      })
+      .catch(err => {
+        document.getElementById("formMessage").innerText = "Error during login.";
+      });
 
-        async function submitForm() {
-            const login_id = document.getElementById("login_id").value;
-            const password = document.getElementById("password").value;
+    } else {
+      const email = document.getElementById("regEmail").value;
+      const phone = document.getElementById("regPhone").value;
+      const password = document.getElementById("regPassword").value;
 
-            const url = isLogin ? "/login" : "/register";
-            const body = isLogin
-                ? { login_id, password }
-                : {
-                    email: login_id.includes('@') ? login_id : null,
-                    phone: !login_id.includes('@') ? login_id : null,
-                    password
-                };
-
-            try {
-                const res = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                });
-
-                const data = await res.json();
-                document.getElementById("message").innerText = data.message;
-
-                if (res.ok && isLogin) {
-                    window.location.href = data.role === "admin" ? "/admin" : "/dashboard";
-                }
-            } catch (err) {
-                document.getElementById("message").innerText = "Error: " + err.message;
-            }
+      fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, phone: phone, password: password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message === "Registration successful!") {
+          document.getElementById("formMessage").innerText = "Registered successfully! Now Login.";
+          toggleForm();
+        } else {
+          document.getElementById("formMessage").innerText = data.message;
         }
-    </script>
+      })
+      .catch(err => {
+        document.getElementById("formMessage").innerText = "Error during registration.";
+      });
+    }
+  }
+</script>
+
 </body>
 </html>

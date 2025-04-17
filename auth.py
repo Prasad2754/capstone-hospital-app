@@ -22,21 +22,21 @@ def register():
         return jsonify({"message": "Email or phone and password required"}), 400
 
     if not is_strong_password(password):
-        return jsonify({"message": "Password must be at least 8 chars, with 1 uppercase & 1 symbol"}), 400
+        return jsonify({"message": "Password must be at least 8 characters, with 1 uppercase and 1 symbol"}), 400
 
     try:
         conn = get_connection()
         cur = conn.cursor()
 
-        # Check if user already exists
+        # Check if the user already exists
         cur.execute("SELECT * FROM users WHERE email = %s OR phone = %s", (email, phone))
         if cur.fetchone():
             return jsonify({"message": "User already exists"}), 409
 
-        # Hash password properly
+        # Hash the password
         hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        # Insert user as patient by default
+        # Insert new user as 'patient' by default
         cur.execute(
             "INSERT INTO users (email, phone, password_hash, role) VALUES (%s, %s, %s, %s)",
             (email, phone, hashed_pw, "patient")
@@ -86,4 +86,4 @@ def login():
 @auth.route("/logout", methods=["GET"])
 def logout():
     session.clear()
-    return redirect(url_for('auth_page'))  # ✅ Properly redirects to login page (/auth)
+    return redirect(url_for('auth_page'))  # ✅ Correct redirect to login page after logout

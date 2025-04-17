@@ -63,8 +63,7 @@
 </head>
 <body>
 
-<!-- Video background (optional) -->
-<!-- If you want no video, remove this -->
+<!-- Optional background video -->
 <!--
 <video autoplay muted loop class="video-background">
   <source src="{{ url_for('static', filename='hospital.mp4') }}" type="video/mp4">
@@ -90,10 +89,10 @@
 
       <div id="registerFields" style="display: none;">
         <div class="mb-3">
-          <input type="email" id="regEmail" class="form-control" placeholder="Email">
+          <input type="email" id="regEmail" class="form-control" placeholder="Email" required>
         </div>
         <div class="mb-3">
-          <input type="text" id="regPhone" class="form-control" placeholder="Phone">
+          <input type="text" id="regPhone" class="form-control" placeholder="Phone (optional)">
         </div>
         <div class="mb-3">
           <input type="password" id="regPassword" class="form-control" placeholder="Password" required>
@@ -167,7 +166,7 @@
       .then(data => {
         if (data.message === "Registration successful!") {
           document.getElementById("formSuccess").innerText = "Registered successfully! Please login now.";
-          toggleForm();
+          toggleForm(); // Switch back to login form
         } else {
           document.getElementById("formMessage").innerText = data.message || "Registration failed.";
         }

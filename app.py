@@ -128,6 +128,5 @@ def quick_book(doctor_id):
         print("Quick book error:", e)
         return "Error booking appointment", 500
 
-# Only for local testing (Render will ignore this)
-if __name__ == "__main__":
-    app.run(debug=True)
+# IMPORTANT: Do NOT run app.run(debug=True) here on Render
+# Render will automatically use gunicorn

@@ -6,7 +6,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background: #f0f2f5;
+      background: #f8f9fa;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -27,6 +27,12 @@
       text-decoration: underline;
       cursor: pointer;
     }
+    .form-error {
+      color: red;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -34,9 +40,10 @@
 <div class="card">
   <h2 class="text-center mb-4" id="formTitle">Login</h2>
   
-  <div id="formMessage" class="text-center text-danger mb-3"></div>
+  <div id="formMessage" class="form-error"></div>
 
   <form id="authForm" onsubmit="submitForm(event)">
+    <!-- Login Fields -->
     <div id="loginFields">
       <div class="mb-3">
         <input type="text" id="loginId" class="form-control" placeholder="Email or Phone" required>
@@ -46,6 +53,7 @@
       </div>
     </div>
 
+    <!-- Register Fields -->
     <div id="registerFields" style="display: none;">
       <div class="mb-3">
         <input type="email" id="regEmail" class="form-control" placeholder="Email">
@@ -76,14 +84,21 @@
     document.getElementById("registerFields").style.display = isLogin ? "none" : "block";
     document.getElementById("formTitle").innerText = isLogin ? "Login" : "Sign Up";
     document.getElementById("toggleText").innerText = isLogin ? "Don't have an account?" : "Already have an account?";
+    document.getElementById("formMessage").innerText = "";
   }
 
   function submitForm(event) {
     event.preventDefault();
+    document.getElementById("formMessage").innerText = "";
 
     if (isLogin) {
-      const loginId = document.getElementById("loginId").value;
-      const password = document.getElementById("loginPassword").value;
+      const loginId = document.getElementById("loginId").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+
+      if (!loginId || !password) {
+        document.getElementById("formMessage").innerText = "Please enter login details.";
+        return;
+      }
 
       fetch("/login", {
         method: "POST",
@@ -95,7 +110,7 @@
         if (data.message === "Login successful!") {
           window.location.href = "/dashboard";  // Redirect to dashboard after login
         } else {
-          document.getElementById("formMessage").innerText = data.message;
+          document.getElementById("formMessage").innerText = data.message || "Login failed.";
         }
       })
       .catch(err => {
@@ -103,9 +118,14 @@
       });
 
     } else {
-      const email = document.getElementById("regEmail").value;
-      const phone = document.getElementById("regPhone").value;
-      const password = document.getElementById("regPassword").value;
+      const email = document.getElementById("regEmail").value.trim();
+      const phone = document.getElementById("regPhone").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+
+      if (!email && !phone) {
+        document.getElementById("formMessage").innerText = "Provide at least email or phone.";
+        return;
+      }
 
       fetch("/register", {
         method: "POST",
@@ -118,7 +138,7 @@
           document.getElementById("formMessage").innerText = "Registered successfully! Now Login.";
           toggleForm();
         } else {
-          document.getElementById("formMessage").innerText = data.message;
+          document.getElementById("formMessage").innerText = data.message || "Registration failed.";
         }
       })
       .catch(err => {

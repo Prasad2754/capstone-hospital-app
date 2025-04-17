@@ -1,4 +1,3 @@
-<!-- doctors.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,6 +34,8 @@
                   Evening: ${doc.evening ? '✅' : '❌'}
                 </p>
                 <p><strong>Estimated Wait Time:</strong> ${doc.wait_time} minutes</p>
+                <p><strong>Hospital Location:</strong><br> ${doc.hospital_address}</p>
+                <button onclick="bookDoctor(${doc.doctor_id})" class="btn btn-success mt-2 w-100">Book Appointment</button>
               </div>
             </div>
           `;
@@ -45,6 +46,11 @@
         console.error(err);
         document.getElementById("doctorsList").innerHTML = "<p class='text-danger'>Error loading doctors list.</p>";
       });
+
+    function bookDoctor(doctorId) {
+      // Try to book the doctor
+      window.location.href = `/quick_book/${doctorId}`;
+    }
   </script>
 </body>
 </html>

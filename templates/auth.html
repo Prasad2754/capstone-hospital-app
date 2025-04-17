@@ -78,24 +78,26 @@
     <div id="formSuccess" class="form-success"></div>
 
     <form id="authForm" onsubmit="submitForm(event)">
+      <!-- LOGIN fields -->
       <div id="loginFields">
         <div class="mb-3">
-          <input type="text" id="loginId" class="form-control" placeholder="Email or Phone" required>
+          <input type="text" id="loginId" name="loginId" class="form-control" placeholder="Email or Phone" required>
         </div>
         <div class="mb-3">
-          <input type="password" id="loginPassword" class="form-control" placeholder="Password" required>
+          <input type="password" id="loginPassword" name="loginPassword" class="form-control" placeholder="Password" required>
         </div>
       </div>
 
+      <!-- REGISTER fields -->
       <div id="registerFields" style="display: none;">
         <div class="mb-3">
-          <input type="email" id="regEmail" class="form-control" placeholder="Email" required>
+          <input type="email" id="regEmail" name="regEmail" class="form-control" placeholder="Email" required>
         </div>
         <div class="mb-3">
-          <input type="text" id="regPhone" class="form-control" placeholder="Phone (optional)">
+          <input type="text" id="regPhone" name="regPhone" class="form-control" placeholder="Phone (optional)">
         </div>
         <div class="mb-3">
-          <input type="password" id="regPassword" class="form-control" placeholder="Password" required>
+          <input type="password" id="regPassword" name="regPassword" class="form-control" placeholder="Password" required>
         </div>
       </div>
 

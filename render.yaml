@@ -2,11 +2,12 @@ services:
   - type: web
     name: capstone-hospital-app
     runtime: python
-    region: oregon  # You can change region if needed
+    region: oregon   # (Optional) Change to your closest AWS region
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: FLASK_ENV
         value: production
       - key: SECRET_KEY
-        value: super_secret_key  # or load from .env if preferred
+        value: super_secret_key
+    plan: free  # Optional: ensures it uses the free tier

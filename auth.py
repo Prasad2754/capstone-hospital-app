@@ -12,20 +12,26 @@ def register():
         phone = data.get("phone")
         password = data.get("password")
 
-        # Validate: Either email or phone is required
         if not email and not phone:
             return jsonify({"message": "Email or Phone is required!"}), 400
 
-        # If phone is not provided, set it as None
-        if not phone:
-            phone = None
-
-        hashed = hash_password(password)
-
+        # Check if email or phone already exists
         conn = get_connection()
         cur = conn.cursor()
 
-        # Insert user into database depending on whether phone is provided
+        if phone:
+            cur.execute("SELECT * FROM users WHERE phone = %s", (phone,))
+            if cur.fetchone():
+                return jsonify({"message": "Phone number already registered!"}), 400
+
+        if email:
+            cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+            if cur.fetchone():
+                return jsonify({"message": "Email already registered!"}), 400
+
+        hashed = hash_password(password)
+
+        # Insert depending on whether phone is provided
         if phone:
             cur.execute("INSERT INTO users (email, phone, password_hash, role) VALUES (%s, %s, %s, %s)",
                         (email, phone, hashed, "patient"))
@@ -64,12 +70,11 @@ def login():
             session["user_id"] = user[0]
             session["role"] = user[4]
 
-            # Check if there's a pending doctor appointment to book
+            # ✅ If there was a pending doctor appointment to book
             pending_doctor_id = session.pop("pending_doctor_id", None)
             if pending_doctor_id:
                 return jsonify({"message": "Login successful!", "redirect": f"/quick_book/{pending_doctor_id}"})
 
-            # If user is admin, return admin role
             if user[4].lower() == "admin":
                 return jsonify({"message": "Login successful!", "role": "admin"})
             else:

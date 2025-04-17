@@ -1,0 +1,50 @@
+<!-- doctors.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Available Doctors - Capstone Hospital</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <h1 class="text-center mb-4">Available Doctors</h1>
+    <div id="doctorsList" class="row g-4"></div>
+    <div class="text-center mt-4">
+      <a href="/" class="btn btn-secondary">Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    fetch("/get_doctors_list")
+      .then(response => response.json())
+      .then(doctors => {
+        const listDiv = document.getElementById("doctorsList");
+        doctors.forEach(doc => {
+          const col = document.createElement("div");
+          col.className = "col-md-4";
+
+          col.innerHTML = `
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title">${doc.name}</h5>
+                <p><strong>Specialty:</strong> ${doc.specialty}</p>
+                <p><strong>Availability:</strong><br>
+                  Morning: ${doc.morning ? '✅' : '❌'}<br>
+                  Afternoon: ${doc.afternoon ? '✅' : '❌'}<br>
+                  Evening: ${doc.evening ? '✅' : '❌'}
+                </p>
+                <p><strong>Estimated Wait Time:</strong> ${doc.wait_time} minutes</p>
+              </div>
+            </div>
+          `;
+          listDiv.appendChild(col);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById("doctorsList").innerHTML = "<p class='text-danger'>Error loading doctors list.</p>";
+      });
+  </script>
+</body>
+</html>

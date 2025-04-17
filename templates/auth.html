@@ -63,11 +63,13 @@
 </head>
 <body>
 
-<!-- Background Video -->
+<!-- Video background (optional) -->
+<!-- If you want no video, remove this -->
+<!--
 <video autoplay muted loop class="video-background">
   <source src="{{ url_for('static', filename='hospital.mp4') }}" type="video/mp4">
-  Your browser does not support the video tag.
 </video>
+-->
 
 <div class="overlay">
   <div class="card">
@@ -77,7 +79,6 @@
     <div id="formSuccess" class="form-success"></div>
 
     <form id="authForm" onsubmit="submitForm(event)">
-      <!-- Login Fields -->
       <div id="loginFields">
         <div class="mb-3">
           <input type="text" id="loginId" class="form-control" placeholder="Email or Phone" required>
@@ -87,7 +88,6 @@
         </div>
       </div>
 
-      <!-- Registration Fields -->
       <div id="registerFields" style="display: none;">
         <div class="mb-3">
           <input type="email" id="regEmail" class="form-control" placeholder="Email">
@@ -140,7 +140,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.message === "Login successful!") {
-          if (data.role === "admin") {
+          if (data.role && data.role.toLowerCase() === "admin") {
             window.location.href = "/admin";
           } else {
             window.location.href = "/dashboard";
@@ -166,7 +166,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.message === "Registration successful!") {
-          document.getElementById("formSuccess").innerText = "Registered successfully! Please log in.";
+          document.getElementById("formSuccess").innerText = "Registered successfully! Please login now.";
           toggleForm();
         } else {
           document.getElementById("formMessage").innerText = data.message || "Registration failed.";

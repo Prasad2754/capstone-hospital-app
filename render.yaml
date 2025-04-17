@@ -2,7 +2,7 @@ services:
   - type: web
     name: capstone-hospital-app
     runtime: python
-    region: oregon   # (Optional) Change to your closest AWS region
+    region: oregon  # or keep default
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
@@ -10,4 +10,4 @@ services:
         value: production
       - key: SECRET_KEY
         value: super_secret_key
-    plan: free  # Optional: ensures it uses the free tier
+    plan: free  # Make sure you are using Free plan unless you want paid

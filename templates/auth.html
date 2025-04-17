@@ -122,7 +122,22 @@
     document.getElementById("toggleText").innerText = isLogin ? "Don't have an account?" : "Already have an account?";
     document.getElementById("formMessage").innerText = "";
     document.getElementById("formSuccess").innerText = "";
+
+    // Disable inputs for hidden form
+    document.querySelectorAll("#loginFields input").forEach(input => {
+      input.disabled = !isLogin;
+    });
+    document.querySelectorAll("#registerFields input").forEach(input => {
+      input.disabled = isLogin;
+    });
   }
+
+  // Disable signup fields initially
+  window.onload = () => {
+    document.querySelectorAll("#registerFields input").forEach(input => {
+      input.disabled = true;
+    });
+  };
 
   function submitForm(event) {
     event.preventDefault();

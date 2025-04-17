@@ -1,11 +1,9 @@
-from flask import Blueprint, request, jsonify, session, redirect, url_for
+from flask import Blueprint, request, session, redirect, url_for, jsonify
 from db_config import get_connection
 from generate_hash import hash_password, verify_password
-from datetime import datetime
 
-auth = Blueprint('auth', __name__)
+auth = Blueprint("auth", __name__)
 
-# Registration Route
 @auth.route("/register", methods=["POST"])
 def register():
     try:
@@ -14,24 +12,23 @@ def register():
         phone = data.get("phone")
         password = data.get("password")
 
-        if not email or not password:
-            return jsonify({"message": "Email and password required"}), 400
+        if not email and not phone:
+            return jsonify({"message": "Email or Phone is required!"}), 400
 
         hashed = hash_password(password)
-
-        # Fix: Make phone = None if empty
-        if not phone:
-            phone = None
 
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute(
-            "INSERT INTO users (email, phone, password_hash, role, registered_on) VALUES (%s, %s, %s, %s, %s)",
-            (email, phone, hashed, "patient", datetime.now())
-        )
-        conn.commit()
+        # Insert depending if phone is provided or not
+        if phone:
+            cur.execute("INSERT INTO users (email, phone, password_hash, role) VALUES (%s, %s, %s, %s)",
+                        (email, phone, hashed, "patient"))
+        else:
+            cur.execute("INSERT INTO users (email, password_hash, role) VALUES (%s, %s, %s)",
+                        (email, hashed, "patient"))
 
+        conn.commit()
         cur.close()
         conn.close()
 
@@ -41,21 +38,18 @@ def register():
         print("Register error:", e)
         return jsonify({"message": "Server error"}), 500
 
-# Login Route
 @auth.route("/login", methods=["POST"])
 def login():
     try:
         data = request.get_json()
-        login_id = data.get("login_id")
+        login_id = data.get("login_id")  # email or phone
         password = data.get("password")
 
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute(
-            "SELECT user_id, email, phone, password_hash, role FROM users WHERE email = %s OR phone = %s",
-            (login_id, login_id)
-        )
+        cur.execute("SELECT user_id, email, phone, password_hash, role FROM users WHERE email = %s OR phone = %s",
+                    (login_id, login_id))
         user = cur.fetchone()
 
         cur.close()
@@ -65,13 +59,15 @@ def login():
             session["user_id"] = user[0]
             session["role"] = user[4]
 
-            # If patient had clicked Book Appointment before login
+            # ✅ If there was a pending doctor appointment to book
             pending_doctor_id = session.pop("pending_doctor_id", None)
             if pending_doctor_id:
-                return jsonify({"message": "Login successful!", "redirect": f"/quick_book/{pending_doctor_id}", "role": user[4]})
-            else:
-                return jsonify({"message": "Login successful!", "redirect": "/dashboard", "role": user[4]})
+                return jsonify({"message": "Login successful!", "redirect": f"/quick_book/{pending_doctor_id}"})
 
+            if user[4].lower() == "admin":
+                return jsonify({"message": "Login successful!", "role": "admin"})
+            else:
+                return jsonify({"message": "Login successful!", "role": "patient"})
         else:
             return jsonify({"message": "Invalid credentials"}), 401
 
@@ -79,8 +75,7 @@ def login():
         print("Login error:", e)
         return jsonify({"message": "Server error"}), 500
 
-# Logout Route
 @auth.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for('auth.auth_page'))
+    return redirect(url_for("auth_page"))
